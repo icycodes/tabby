@@ -1,8 +1,8 @@
 import axios from "axios";
 import { EventEmitter } from "node:events";
 import { strict as assert } from "node:assert";
-import { sleep } from "./utils";
-import { Agent, AgentEvent } from "./types";
+import { sleep } from "../utils";
+import { Agent, AgentEvent } from "../Agent";
 import {
   TabbyApi,
   CancelablePromise,
@@ -12,9 +12,9 @@ import {
   CompletionResponse,
   ChoiceEvent,
   CompletionEvent,
-} from "./generated";
+} from "../generated";
 
-export class TabbyAgent extends EventEmitter implements Agent {
+export class ServerAgent extends EventEmitter implements Agent {
   private serverUrl: string = "http://127.0.0.1:5000";
   private status: "connecting" | "ready" | "disconnected" = "connecting";
   private api: TabbyApi;

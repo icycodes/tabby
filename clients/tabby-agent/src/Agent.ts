@@ -20,8 +20,3 @@ export interface AgentEventEmitter {
 }
 
 export type Agent = AgentFunction & AgentEventEmitter;
-
-export interface AgentIO {
-  bind(agent: Agent): void;
-  listen(): void;
-}
