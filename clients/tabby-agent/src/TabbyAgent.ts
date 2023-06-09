@@ -68,13 +68,13 @@ export class TabbyAgent extends EventEmitter implements Agent {
           this.changeStatus("ready");
           return response;
         })
-        .catch((error: CancelError) => {
-          this.logger.debug({ api: api.name }, "API request canceled");
-          throw error;
-        })
-        .catch((error: ApiError) => {
-          this.logger.error({ api: api.name, error }, "API error");
-          this.changeStatus("disconnected");
+        .catch((error: ApiError | CancelError) => {
+          if (error instanceof CancelError && error.isCancelled) {
+            this.logger.debug({ api: api.name }, "API request canceled");
+          } else {
+            this.logger.error({ api: api.name, error }, "API error");
+            this.changeStatus("disconnected");
+          }
           throw error;
         }),
       () => {
