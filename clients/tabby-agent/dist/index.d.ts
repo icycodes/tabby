@@ -136,7 +136,6 @@ declare class TabbyAgent extends EventEmitter implements Agent {
     private constructor();
     static create(options?: Partial<TabbyAgentOptions>): Promise<TabbyAgent>;
     private applyConfig;
-    private onAuthUpdated;
     private changeStatus;
     private callApi;
     private healthCheck;

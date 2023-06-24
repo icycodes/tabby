@@ -64,13 +64,8 @@ export class TabbyAgent extends EventEmitter implements Agent {
     this.anonymousUsageLogger.disabled = this.config.anonymousUsageTracking.disable;
     if (this.config.server.endpoint !== this.auth?.endpoint) {
       this.auth = await Auth.create({ endpoint: this.config.server.endpoint, dataStore: this.dataStore });
-      this.auth.on("updated", this.onAuthUpdated.bind(this));
     }
-    this.api = new TabbyApi({ BASE: this.config.server.endpoint, TOKEN: this.auth.token });
-  }
-
-  private async onAuthUpdated() {
-    this.api = new TabbyApi({ BASE: this.config.server.endpoint, TOKEN: this.auth.token });
+    this.api = new TabbyApi({ BASE: this.config.server.endpoint, TOKEN: this.auth?.token });
     await this.healthCheck();
   }
 
@@ -88,9 +83,26 @@ export class TabbyAgent extends EventEmitter implements Agent {
     request: Request
   ): CancelablePromise<Response> {
     this.logger.debug({ api: api.name, request }, "API request");
-    const promise = api.call(this.api.v1, request);
+    const checkToken = !this.auth
+      ? Promise.resolve()
+      : this.auth
+          .checkAndRefreshToken()
+          .then((tokenRefreshed) => {
+            if (tokenRefreshed) {
+              this.api = new TabbyApi({ BASE: this.config.server.endpoint, TOKEN: this.auth.token });
+            }
+          })
+          .catch((error) => {
+            this.logger.debug({ error }, "Ignore error when checking token");
+          });
+
+    let apiRequest: CancelablePromise<Response>;
     return cancelable(
-      promise
+      checkToken
+        .then(() => {
+          apiRequest = api.call(this.api.v1, request);
+          return apiRequest;
+        })
         .then((response: Response) => {
           this.logger.debug({ api: api.name, response }, "API response");
           this.changeStatus("ready");
@@ -112,12 +124,12 @@ export class TabbyAgent extends EventEmitter implements Agent {
           throw error;
         }),
       () => {
-        promise.cancel();
+        apiRequest.cancel();
       }
     );
   }
 
-  private async healthCheck(): Promise<any> {
+  private healthCheck(): Promise<any> {
     return this.callApi(this.api.v1.health, {}).catch(() => {});
   }
 
@@ -139,9 +151,12 @@ export class TabbyAgent extends EventEmitter implements Agent {
     if (options.client) {
       // Client info is only used in logging for now
       // `pino.Logger.setBindings` is not present in the browser
-      allLoggers.forEach((logger) => logger.setBindings && logger.setBindings({ client: options.client }));
+      allLoggers.forEach((logger) => logger.setBindings?.({ client: options.client }));
     }
-    await this.updateConfig(options.config || {});
+    if (options.config) {
+      this.config = deepMerge(this.config, options.config);
+    }
+    await this.applyConfig();
     await this.anonymousUsageLogger.event("AgentInitialized", {
       client: options.client,
     });
@@ -158,7 +173,6 @@ export class TabbyAgent extends EventEmitter implements Agent {
       this.logger.debug({ event }, "Config updated");
       super.emit("configUpdated", event);
     }
-    await this.healthCheck();
     return true;
   }
 
