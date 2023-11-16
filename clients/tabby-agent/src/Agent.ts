@@ -99,7 +99,7 @@ export interface AgentFunction {
   /**
    * @returns the current issues if any exists
    */
-  getIssues(detail?: boolean): AgentIssue["name"][];
+  getIssues(): AgentIssue["name"][];
 
   /**
    * Get the detail of an issue by index or name.

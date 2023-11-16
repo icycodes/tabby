@@ -109,3 +109,11 @@ export function isTimeoutError(error: any) {
 export function isCanceledError(error: any) {
   return error instanceof Error && error.name === "AbortError";
 }
+
+export function errorToString(error: any) {
+  let message = error.message || error.toString();
+  if (error.cause) {
+    message += "\nCaused by: " + errorToString(error.cause);
+  }
+  return message;
+}

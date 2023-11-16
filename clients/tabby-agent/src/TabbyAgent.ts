@@ -6,7 +6,7 @@ import { getProperty, setProperty, deleteProperty } from "dot-prop";
 import createClient from "openapi-fetch";
 import type { ParseAs } from "openapi-fetch";
 import type { paths as TabbyApi } from "./types/tabbyApi";
-import { isBlank, abortSignalFromAnyOf, HttpError, isTimeoutError, isCanceledError } from "./utils";
+import { isBlank, abortSignalFromAnyOf, HttpError, isTimeoutError, isCanceledError, errorToString } from "./utils";
 import type {
   Agent,
   AgentStatus,
@@ -223,15 +223,13 @@ export class TabbyAgent extends EventEmitter implements Agent {
 
   private async healthCheck(options?: AbortSignalOption): Promise<any> {
     const requestId = uuid();
+    const requestPath = "/v1/health";
+    const requestUrl = this.config.server.endpoint + requestPath;
+    const requestOptions = {
+      signal: this.createAbortSignal(options),
+    };
     try {
-      const requestPath = "/v1/health";
-      const requestOptions = {
-        signal: this.createAbortSignal(options),
-      };
-      this.logger.debug(
-        { requestId, requestOptions, url: this.config.server.endpoint + requestPath },
-        "Health check request",
-      );
+      this.logger.debug({ requestId, requestOptions, url: requestUrl }, "Health check request");
       const response = await this.api.GET(requestPath, requestOptions);
       if (response.error) {
         throw new HttpError(response.response);
@@ -263,20 +261,13 @@ export class TabbyAgent extends EventEmitter implements Agent {
       } else {
         if (isTimeoutError(error)) {
           this.logger.debug({ requestId, error }, "Health check error: timeout");
-          this.connectionErrorMessage = "Connection timeout.";
+          this.connectionErrorMessage = `GET ${requestUrl}: Timed out.`;
         } else if (isCanceledError(error)) {
           this.logger.debug({ requestId, error }, "Health check error: canceled");
-          this.connectionErrorMessage = "Connection canceled.";
+          this.connectionErrorMessage = `GET ${requestUrl}: Canceled.`;
         } else {
           this.logger.error({ requestId, error }, "Health check error: unknown error");
-          let buildMessage = (error: any): string => {
-            let message = error.toString();
-            if (error.cause) {
-              message += "\nCaused by: " + buildMessage(error.cause);
-            }
-            return message;
-          };
-          this.connectionErrorMessage = `Connection failed: ${buildMessage(error)}`;
+          this.connectionErrorMessage = `GET ${requestUrl}: Request failed: \n${errorToString(error)}`;
         }
         this.pushIssue("connectionFailed");
         this.changeStatus("disconnected");

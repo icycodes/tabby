@@ -21,11 +21,8 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.tabbyml.intellijtabby.settings.ApplicationSettingsState
 import io.ktor.util.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 @Service
 class AgentService : Disposable {
@@ -42,8 +39,7 @@ class AgentService : Disposable {
   private var completionResponseWarningShown = false
 
   enum class Status {
-    INITIALIZING,
-    INITIALIZATION_FAILED,
+    INITIALIZING, INITIALIZATION_FAILED,
   }
 
   private var initResultFlow: MutableStateFlow<Boolean?> = MutableStateFlow(null)
@@ -89,14 +85,20 @@ class AgentService : Disposable {
     }
 
     scope.launch {
-      settings.state.collect {
-        if (it.serverEndpoint.isNotBlank()) {
-          updateConfig("server.endpoint", it.serverEndpoint)
-        } else {
-          clearConfig("server.endpoint")
-        }
-        updateClientProperties("user", "intellij.triggerMode", it.completionTriggerMode)
-        updateConfig("anonymousUsageTracking.disable", it.isAnonymousUsageTrackingDisabled)
+      settings.serverEndpointState.collect {
+        setEndpoint(it)
+      }
+    }
+
+    scope.launch {
+      settings.completionTriggerModeState.collect {
+        updateClientProperties("user", "intellij.triggerMode", it)
+      }
+    }
+
+    scope.launch {
+      settings.isAnonymousUsageTrackingDisabledState.collect {
+        updateConfig("anonymousUsageTracking.disable", it)
       }
     }
 
@@ -119,15 +121,26 @@ class AgentService : Disposable {
 
     scope.launch {
       agent.currentIssue.collect { issueName ->
+        if (issueName == null) {
+          invokeLater {
+            issueNotification?.expire()
+          }
+          return@collect
+        }
+        if (completionResponseWarningShown &&
+          (issueName in listOf("slowCompletionResponseTime", "highCompletionTimeoutRate"))
+        ) {
+          return@collect
+        }
         val content = when (issueName) {
+          "connectionFailed" -> "Cannot connect to Tabby server"
           "slowCompletionResponseTime" -> "Completion requests appear to take too much time"
           "highCompletionTimeoutRate" -> "Most completion requests timed out"
           else -> return@collect
         }
-        if (completionResponseWarningShown) {
-          return@collect
+        if (issueName in listOf("slowCompletionResponseTime", "highCompletionTimeoutRate")) {
+          completionResponseWarningShown = true
         }
-        completionResponseWarningShown = true
         val notification = Notification(
           "com.tabbyml.intellijtabby.notification.warning",
           content,
@@ -200,6 +213,14 @@ class AgentService : Disposable {
   private suspend fun clearConfig(key: String) {
     waitForInitialized()
     agent.clearConfig(key)
+  }
+
+  suspend fun setEndpoint(endpoint: String) {
+    if (endpoint.isNotBlank()) {
+      updateConfig("server.endpoint", endpoint)
+    } else {
+      clearConfig("server.endpoint")
+    }
   }
 
   suspend fun getConfig(): Agent.Config {

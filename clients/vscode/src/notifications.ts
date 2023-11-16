@@ -89,16 +89,37 @@ function showInformationWhenInlineSuggestDisabled() {
     });
 }
 
-function showInformationWhenDisconnected() {
-  const message =
-    agent().getIssueDetail<ConnectionFailedIssue>({ name: "connectionFailed" })?.message ?? "Please check settings.";
-  window.showWarningMessage(`Cannot connect to Tabby Server. ${message}`, "Settings").then((selection) => {
-    switch (selection) {
-      case "Settings":
-        commands.executeCommand("tabby.openSettings");
-        break;
-    }
-  });
+function showInformationWhenDisconnected(modal: boolean = false) {
+  if (modal) {
+    const message = agent().getIssueDetail<ConnectionFailedIssue>({ name: "connectionFailed" })?.message;
+    window
+      .showWarningMessage(
+        `Cannot connect to Tabby Server.`,
+        {
+          modal: true,
+          detail: message,
+        },
+        "Settings",
+      )
+      .then((selection) => {
+        switch (selection) {
+          case "Settings":
+            commands.executeCommand("tabby.openSettings");
+            break;
+        }
+      });
+  } else {
+    window.showWarningMessage(`Cannot connect to Tabby Server.`, "Detail", "Settings").then((selection) => {
+      switch (selection) {
+        case "Detail":
+          showInformationWhenDisconnected(true);
+          break;
+        case "Settings":
+          commands.executeCommand("tabby.openSettings");
+          break;
+      }
+    });
+  }
 }
 
 function showInformationStartAuth(callbacks?: { onAuthStart?: () => void; onAuthEnd?: () => void }) {
