@@ -1,0 +1,152 @@
+[
+  {
+    "request": {
+      "language": "python",
+      "segments": { "prefix": "def fib(n):\n    ", "suffix": "\n        return fib(n - 1) + fib(n - 2)" }
+    },
+    "response": {
+      "id": "cmpl-fec05817-6177-414c-915f-1973cdf01c66",
+      "choices": [{ "index": 0, "text": "    if n <= 1:\n            return n" }]
+    }
+  },
+  {
+    "request": {
+      "language": "python",
+      "segments": {
+        "prefix": "import datetime\n\ndef parse_expenses(expenses_string):\n    \"\"\"Parse the list of expenses and return the list of triples (date, value, currency).\n    Ignore lines starting with #.\n    Parse the date using datetime.\n    Example expenses_string:\n        2016-01-02 -34.01 USD\n        2016-01-03 2.59 DKK\n        2016-01-03 -2.72 EUR\n    \"\"\"\n    for line in expenses_string.split('\\\\n'):\n        ",
+        "suffix": ""
+      }
+    },
+    "response": {
+      "id": "cmpl-b60e304b-313a-4753-9f87-3b47a7c0c511",
+      "choices": [
+        {
+          "index": 0,
+          "text": "if line.startswith('#'):\n            continue\n        date, value, currency = line.split()\n        date = datetime.datetime.strptime(date, '%Y-%m-%d')\n        yield date, float(value), currency"
+        }
+      ]
+    }
+  },
+  {
+    "request": {
+      "language": "typescript",
+      "segments": {
+        "prefix": "export class Foo {\n  private _foo: number;\n  \n  constructor() {\n    this._foo = 1;\n  }\n  \n  update(value): Foo {\n    this._foo = max(",
+        "suffix": ")\n  }\n}\n"
+      }
+    },
+    "response": {
+      "id": "cmpl-f5f3728f-92e4-44d8-aea2-824dfd204294",
+      "choices": [{ "index": 0, "text": "this._foo, value" }]
+    }
+  },
+  {
+    "request": {
+      "language": "typescript",
+      "segments": { "prefix": "function fibonacci(", "suffix": ")" }
+    },
+    "response": {
+      "id": "cmpl-38239028-8c8a-4114-b1ff-649b58014ac6",
+      "choices": [{ "index": 0, "text": "" }]
+    }
+  },
+  {
+    "request": {
+      "language": "typescript",
+      "segments": { "prefix": "function fibonacci(", "suffix": "" }
+    },
+    "response": {
+      "id": "cmpl-01e4c0d8-cc4a-47f5-9ce5-9459e7f5b956",
+      "choices": [
+        {
+          "index": 0,
+          "text": "n) {\n  if (n <= 1) {\n    return n;\n  }\n  return fibonacci(n - 1) + fibonacci(n - 2);\n}\n"
+        }
+      ]
+    }
+  },
+  {
+    "request": {
+      "language": "go",
+      "segments": { "prefix": "func fibonacci(", "suffix": "" }
+    },
+    "response": {
+      "id": "cmpl-f090b6b0-b951-45a8-9da2-6b9afc2e3a46",
+      "choices": [
+        {
+          "index": 0,
+          "text": "n int) int {\n\tif n <= 1 {\n\t\treturn n\n\t}\n\treturn fibonacci(n-1) + fibonacci(n-2)\n}\n"
+        }
+      ]
+    }
+  },
+  {
+    "request": {
+      "language": "rust",
+      "segments": { "prefix": "fn fibonacci(", "suffix": "" }
+    },
+    "response": {
+      "id": "cmpl-cb715ba9-b3a7-438e-a764-19b08f8b8d2f",
+      "choices": [
+        {
+          "index": 0,
+          "text": "n: i32) -> i32 {\n    if n <= 1 {\n        return n;\n    }\n    fibonacci(n - 1) + fibonacci(n - 2)\n}\n"
+        }
+      ]
+    }
+  },
+  {
+    "request": {
+      "language": "ruby",
+      "segments": { "prefix": "def fibonacci(n)\n  return n if n <= 1\n  ", "suffix": "\nend" }
+    },
+    "response": {
+      "id": "cmpl-94992690-12e8-4ad0-942f-a705e8837458",
+      "choices": [{ "index": 0, "text": "fibonacci(n - 1) + fibonacci(n - 2)" }]
+    }
+  },
+  {
+    "request": {
+      "language": "javascript",
+      "segments": {
+        "prefix": "const arr = [\"a\", \"b\", \"c\"];\n\nfunction myEncode(arr) {\n  return arr\n    .map(item => item.toLocaleUpperCase())\n    .map(item => `(${item})`)\n    .map(item => Buffer.from(item).toString(\"base64\"));\n}\nconsole.log(myEncode(arr));\n\nfunction myDecode(arr) {\n  return arr\n    .map",
+        "suffix": "}"
+      }
+    },
+    "response": {
+      "id": "cmpl-51e5ddfc-9b14-4cf6-9235-b0e7db87f3f9",
+      "choices": [
+        {
+          "index": 0,
+          "text": "(item => Buffer.from(item, \"base64\").toString(\"ascii\"))\n     .map(item => item.toLocaleLowerCase());\n}\nconsole.log(myDecode(arr));\n"
+        }
+      ]
+    }
+  },
+  {
+    "request": {
+      "language": "python",
+      "segments": {
+        "prefix": "def foo(msg):\n  print(msg)\n  return 0\nfoo(\"Hello, World!\")\ndef bar(msg):\n  print",
+        "suffix": ""
+      }
+    },
+    "response": {
+      "id": "cmpl-fc44711c-32b9-406b-bb47-e45ea8b6287b",
+      "choices": [{ "index": 0, "text": "(msg)\n  return 1\nbar(\"Hello, World!\")" }]
+    }
+  },
+  {
+    "request": {
+      "language": "typescript",
+      "segments": {
+        "prefix": "function clamp(n: number, max: number, min: number): number {\n  return Math.max(Math.min(",
+        "suffix": ");\n}"
+      }
+    },
+    "response": {
+      "id": "cmpl-92554bf0-0225-4550-8513-0283600038e7",
+      "choices": [{ "index": 0, "text": "n, max), min" }]
+    }
+  }
+]

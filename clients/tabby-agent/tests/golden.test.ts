@@ -1,7 +1,3 @@
-// This golden test requires local Tabby server to be running on port 8087.
-// The server should use tabby linux image version 0.4.0, with model TabbyML/StarCoder-1B,
-// cuda backend, and without any repository specified for RAG.
-
 import { spawn } from "child_process";
 import readline from "readline";
 import path from "path";
