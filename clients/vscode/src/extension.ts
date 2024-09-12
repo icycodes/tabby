@@ -11,6 +11,7 @@ import { GitProvider } from "./git/GitProvider";
 import { ContextVariables } from "./ContextVariables";
 import { StatusBarItem } from "./StatusBarItem";
 import { ChatViewProvider } from "./chat/ChatViewProvider";
+import { ChatPanelViewProvider } from "./chat/ChatPanelViewProvider";
 import { Commands } from "./Commands";
 import { Status } from "tabby-agent";
 import { CodeActions } from "./CodeActions";
@@ -84,7 +85,8 @@ export async function activate(context: ExtensionContext) {
       webviewOptions: { retainContextWhenHidden: true },
     }),
   );
-
+  // Create chat panel view
+  const chatPanelViewProvider = new ChatPanelViewProvider(context, client.agent, logger, gitProvider);
   await gitProvider.init();
   await client.start();
 
@@ -103,6 +105,7 @@ export async function activate(context: ExtensionContext) {
     inlineCompletionProvider,
     chatViewProvider,
     gitProvider,
+    chatPanelViewProvider
   );
   /* eslint-disable-next-line @typescript-eslint/ban-ts-comment */ /* eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error */
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */ // @ts-ignore noUnusedLocals
